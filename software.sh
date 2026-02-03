@@ -10,6 +10,7 @@ echo "Installing system software.  Press:
   'b' build tools
   'l' libre office writer, calc
   's' ssh key
+  'n' node.js v20
 "
 # Read single character (-n 1) silently (-s), without Enter (-r), 
 # into the 'confirm' variable.
@@ -65,6 +66,8 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "g" ]; then
     sudo add-apt-repository ppa:git-core/ppa
     sudo apt update
     sudo apt install git
+    git config --global user.email "mthielvoldt@gmail.com"
+    git config --global user.name "Mike Thielvoldt"
 fi
 
 # -- Ssh key (for github) --
@@ -111,6 +114,30 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
     
     xargs -n 1 code --install-extension < vscode-extensions.txt
 fi
+
+# -- Node.js --
+if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
+
+    if [[ ! -f "/usr/share/keyrings/nodesource.gpg" ]]; then
+        echo -e "\n[software.sh] Adding nodesource.gpg to keyrings"
+        wget -O - https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+            | gpg --dearmor > nodesource.gpg
+        sudo install -D -o root -g root -m 644 nodesource.gpg /usr/share/keyrings/nodesource.gpg
+        rm -f nodesource.gpg
+    fi
+    
+    if [ ! -f /etc/apt/sources.list.d/nodesource.sources ]; then
+        echo -e "\n[software.sh] Installing nodesource.sources"
+        sudo install -D -o root -g root -m 644 "$call_dir/nodesource.sources" /etc/apt/sources.list.d/nodesource.sources
+    fi
+
+    if ! command -v node >/dev/null 2>&1; then
+        echo -e "\n[software.sh] Installing Node"
+        sudo apt update
+        sudo apt install nodejs
+    fi
+fi
+
 
 # --  --
 if [ "$confirm" == "a" ] || [ "$confirm" == "a" ]; then
