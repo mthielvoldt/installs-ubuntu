@@ -60,7 +60,7 @@ fi
 if [ "$confirm" == "a" ] || [ "$confirm" == "u" ]; then
     echo -e "\n[software.sh] Installing apt utilities..."
     sudo apt update
-    sudo apt install tree python3-venv vlc
+    sudo apt install tree python3-venv mpv
 fi
 
 # -- Git from ppa (because github hosted runner ubuntu-latest has the latest git, apt does not.)
