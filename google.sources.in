@@ -1,0 +1,6 @@
+Types: deb
+URIs: https://dl.google.com/linux/chrome/deb/
+Suites: stable
+Components: main
+Architectures: $DPKG_ARCH
+Signed-By: /usr/share/keyrings/google.gpg

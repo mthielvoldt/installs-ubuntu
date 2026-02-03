@@ -3,15 +3,16 @@ set -e
 
 echo "Installing system software.  Press:
   'a' for all
+  'b' build tools
+  'c' cmake
   'd' for Dropbox
   'g' git (latest)
+  'h' chrome browser
+  'l' libre office writer, calc
+  'n' node.js v20 (to change node version, edit nodesource.sources)
+  's' ssh key
   'u' for utilities (tree...)
   'v' for Visual Studio Code
-  'b' build tools
-  'l' libre office writer, calc
-  's' ssh key
-  'n' node.js v20 (to change node version, edit nodesource.sources)
-  'c' cmake
 "
 # Read single character (-n 1) silently (-s), without Enter (-r), 
 # into the 'confirm' variable.
@@ -22,7 +23,8 @@ if [[ "$confirm" == "" ]] ; then
     exit 0
 fi
 
-call_dir=$(pwd)
+CALL_DIR=$(pwd)
+export DPKG_ARCH=$(dpkg --print-architecture)
 
 
 # -- Create ~/bin if not there --
@@ -39,7 +41,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "d" ]; then
         echo -e "\n[software.sh] Installing Dropbox daemon into ~/.dropbox-dist/ ..."
         cd $HOME
         wget -O - "https://www.dropbox.com/download?plat=lnx.x86_64" | tar xzf -
-        cd $call_dir
+        cd $CALL_DIR
     else
         echo -e "\n[software.sh] Dropbox already installed."
     fi
@@ -106,7 +108,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
     
     if [ ! -f /etc/apt/sources.list.d/vscode.sources ]; then
         echo -e "\n[software.sh] Installing vscode.sources"
-        sudo install -D -o root -g root -m 644 "$call_dir/vscode.sources" /etc/apt/sources.list.d/vscode.sources
+        sudo install -D -o root -g root -m 644 "$CALL_DIR/vscode.sources" /etc/apt/sources.list.d/vscode.sources
     fi
     
     sudo apt install apt-transport-https
@@ -129,7 +131,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
     
     if [ ! -f /etc/apt/sources.list.d/nodesource.sources ]; then
         echo -e "\n[software.sh] Installing nodesource.sources"
-        sudo install -D -o root -g root -m 644 "$call_dir/nodesource.sources" /etc/apt/sources.list.d/nodesource.sources
+        sudo install -D -o root -g root -m 644 "$CALL_DIR/nodesource.sources" /etc/apt/sources.list.d/nodesource.sources
     fi
 
     if ! command -v node >/dev/null 2>&1; then
@@ -138,7 +140,6 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
         sudo apt install nodejs
     fi
 fi
-
 
 # -- cmake --
 if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
@@ -154,7 +155,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
     fi
     
     if [ ! -f /etc/apt/sources.list.d/kitware.sources ]; then
-        echo -e "\n[software.sh] Installing kitware.sources"
+        echo -e "\n[software.sh] Adding kitware deb repo..."
 
         # Get the version code of this ubuntu (bionic, focal, jammy, noble)
         . /etc/os-release
@@ -171,6 +172,25 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
         echo -e "\n[software.sh] installing cmake"
         sudo apt install kitware-archive-keyring cmake
     fi
+fi
+
+# -- Chrome --
+if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
+    if [ ! -f /usr/share/keyrings/google.gpg ]; then
+        echo -e "\n[software.sh] Adding google key to keyring"
+        wget -O - https://dl-ssl.google.com/linux/linux_signing_key.pub \
+            | gpg --dearmor > /tmp/google.gpg
+        sudo install -o root -g root -m 644 /tmp/google.gpg /usr/share/keyrings/google.gpg
+    fi
+
+    if [ ! -f /etc/apt/sources.list.d/google.sources ]; then
+        echo -e "\n[software.sh] Adding google deb repo..."
+        envsubst < google.sources.in \
+            | sudo tee /etc/apt/sources.list.d/google.sources >/dev/null
+        sudo apt update
+    fi
+
+    sudo apt install google-chrome-stable
 fi
 
 # --  --
