@@ -10,7 +10,8 @@ echo "Installing system software.  Press:
   'b' build tools
   'l' libre office writer, calc
   's' ssh key
-  'n' node.js v20
+  'n' node.js v20 (to change node version, edit nodesource.sources)
+  'c' cmake
 "
 # Read single character (-n 1) silently (-s), without Enter (-r), 
 # into the 'confirm' variable.
@@ -57,7 +58,7 @@ fi
 if [ "$confirm" == "a" ] || [ "$confirm" == "u" ]; then
     echo -e "\n[software.sh] Installing apt utilities..."
     sudo apt update
-    sudo apt install tree
+    sudo apt install tree python3-venv vlc
 fi
 
 # -- Git from ppa (because github hosted runner ubuntu-latest has the latest git, apt does not.)
@@ -139,7 +140,42 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
 fi
 
 
+# -- cmake --
+if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
+
+    # Kitware has a package to manage key rotation.  We need to additionally check that 
+    # this package (kitware-archive-keyring) isn't installed before manually copying the gpg key.
+    if [ ! -f "/usr/share/doc/kitware-archive-keyring/copyright" ] && [ ! -f "/usr/share/keyrings/kitware-archive-keyring.gpg" ]; then
+        echo -e "\n[software.sh] Adding kitware.gpg to keyrings"
+        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc \
+            | gpg --dearmor > kitware.gpg
+        sudo install -D -o root -g root -m 644 kitware.gpg /usr/share/keyrings/kitware-archive-keyring.gpg
+        rm -f kitware.gpg
+    fi
+    
+    if [ ! -f /etc/apt/sources.list.d/kitware.sources ]; then
+        echo -e "\n[software.sh] Installing kitware.sources"
+
+        # Get the version code of this ubuntu (bionic, focal, jammy, noble)
+        . /etc/os-release
+        export VERSION_CODENAME
+
+        # substutute this version codename into the sources file. 
+        envsubst < kitware.sources.in > /tmp/kitware.sources
+        sudo install -D -o root -g root -m 644 /tmp/kitware.sources /etc/apt/sources.list.d/kitware.sources
+        sudo apt-get update
+        sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
+    fi
+
+    if ! command -v cmake >/dev/null 2>&1; then
+        echo -e "\n[software.sh] installing cmake"
+        sudo apt install kitware-archive-keyring cmake
+    fi
+fi
+
 # --  --
 if [ "$confirm" == "a" ] || [ "$confirm" == "a" ]; then
-    echo -e "\n[software.sh] "
+    if [ !  ]; then
+        echo -e "\n[software.sh] "
+    fi
 fi
