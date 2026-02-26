@@ -5,9 +5,10 @@ echo "Installing system software.  Press:
   'a' for all
   'b' build tools
   'c' cmake
+  'C' Chrome browser
   'd' for Dropbox
   'g' git (latest)
-  'h' chrome browser
+  'h' home mods
   'l' libre office writer, calc
   'n' node.js v20 (to change node version, edit nodesource.sources)
   's' ssh key
@@ -28,10 +29,16 @@ export DPKG_ARCH=$(dpkg --print-architecture)
 
 
 # -- Create ~/bin if not there --
-if [ ! -d "$HOME/bin" ]; then
-    echo -e "\n[software.sh] Creating ~/bin"
-    mkdir -p "$HOME/bin"
-    export PATH="$HOME/bin:$PATH"
+if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
+    if [ ! -d "$HOME/bin" ]; then
+        echo -e "\n[software.sh] Creating ~/bin"
+        mkdir -p "$HOME/bin"
+        export PATH="$HOME/bin:$PATH"
+    fi
+    if [[ ! $MGT_ALIASES ]]
+        echo -e "\n[software.sh] Adding 'source ~/installs/aliases.sh' to ~/.profile"
+        echo -e "\nsource ~/installs/aliases.sh\n" >> ~/.profile
+    fi
 fi
 
 # -- Dropbox --
@@ -175,7 +182,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
 fi
 
 # -- Chrome --
-if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
+if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
     if [ ! -f /usr/share/keyrings/google.gpg ]; then
         echo -e "\n[software.sh] Adding google key to keyring"
         wget -O - https://dl-ssl.google.com/linux/linux_signing_key.pub \
