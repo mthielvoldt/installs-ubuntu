@@ -35,7 +35,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
         mkdir -p "$HOME/bin"
         export PATH="$HOME/bin:$PATH"
     fi
-    if [[ ! $MGT_ALIASES ]]
+    if [[ ! $MGT_ALIASES ]]; then
         echo -e "\n[software.sh] Adding 'source ~/installs/aliases.sh' to ~/.profile"
         echo -e "\nsource ~/installs/aliases.sh\n" >> ~/.profile
     fi
