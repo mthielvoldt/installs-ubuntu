@@ -37,7 +37,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
     fi
     if [[ ! $MGT_ALIASES ]]; then
         echo -e "\n[software.sh] Adding 'source ~/installs/aliases.sh' to ~/.profile"
-        echo -e "\nsource ~/installs/aliases.sh\n" >> ~/.profile
+        echo -e "\n# MGT Aliases\nsource ~/installs/aliases.sh" >> ~/.bashrc
     fi
 fi
 
