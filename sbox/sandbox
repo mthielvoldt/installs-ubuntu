@@ -1,0 +1,23 @@
+#!/bin/bash
+# sandbox.sh - Entry point
+# Usage: ./sandbox.sh [command [args...]]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export COMMAND="${*:-bash}"
+export RESOLV_CONF=$(mktemp)
+export SLIRP_READY=$(mktemp)
+export INNER_PID_FILE=$(mktemp)
+
+cleanup() {
+  rm -f "$RESOLV_CONF" "$SLIRP_READY" "$INNER_PID_FILE"
+}
+trap cleanup EXIT
+
+echo "nameserver 10.0.2.3" > "$RESOLV_CONF"
+echo "[sandbox] Starting..."
+
+sudo --preserve-env=RESOLV_CONF,SLIRP_READY,INNER_PID_FILE,COMMAND \
+  unshare --user --map-root-user \
+  bash "$SCRIPT_DIR/sandbox-outer.sh"
