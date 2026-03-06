@@ -1,0 +1,33 @@
+sudo unshare --user --map-root-user bash -c '
+  unshare --net bash -c '\''
+    sleep 10 &
+    echo "inner pid: $$"
+
+    sleep 2
+    echo "nameserver 10.0.2.3" > /tmp/slirp-resolv.conf
+
+    bwrap \
+      --ro-bind / / \
+      --ro-bind /tmp/slirp-resolv.conf /etc/resolv.conf \
+      --dev /dev \
+      --proc /proc \
+      --share-net \
+      -- bash -c "
+        echo OUTBOUND:
+        curl -s --max-time 5 https://httpbin.org/ip && echo OK || echo FAILED
+        echo LOOPBACK:
+        ping -c1 -W1 127.0.0.1 && echo WORKS || echo BLOCKED
+      "
+  '\'' &
+  INNER_PID=$!
+  sleep 1
+
+  slirp4netns \
+    --configure \
+    --disable-host-loopback \
+    $INNER_PID tap0 &
+  SLIRP_PID=$!
+
+  wait $INNER_PID
+  kill $SLIRP_PID 2>/dev/null
+'
