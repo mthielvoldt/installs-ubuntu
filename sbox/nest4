@@ -15,8 +15,6 @@ sudo unshare --user --map-root-user bash -c '
       -- bash -c "
         echo OUTBOUND:
         curl -s --max-time 5 https://httpbin.org/ip && echo OK || echo FAILED
-        echo LOOPBACK:
-        ping -c1 -W1 127.0.0.1 && echo WORKS || echo BLOCKED
       "
   '\'' &
   INNER_PID=$!

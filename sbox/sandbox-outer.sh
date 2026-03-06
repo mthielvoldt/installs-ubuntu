@@ -3,14 +3,25 @@
 # Do not call directly.
 
 set -euo pipefail
+# enable job control 
+set -m
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Launch inner net NS shell in background
-bash "$SCRIPT_DIR/sandbox-inner.sh" &
+# Launch inner net NS shell in background, to be brought FG soon.
+unshare --net bash sandbox-inner.sh &
 
 # Wait for inner shell to write its PID
-while [ ! -s "$INNER_PID_FILE" ]; do sleep 0.1; done
+count=0
+while [[ ! -s "$INNER_PID_FILE" && $count -lt "5" ]]; do 
+  echo "[sandbox] waiting for inner"
+  sleep 0.1;
+  count=$((count + 1))
+done
+if [[ $count -ge "5" ]]; then
+  echo "[sandbox] inner not reporting PID - Aborting."
+  kill -9 %1
+  exit 1
+fi
+
 INNER_PID=$(cat "$INNER_PID_FILE")
 echo "[sandbox] Inner net NS PID: $INNER_PID"
 
@@ -25,5 +36,5 @@ slirp4netns \
   "$INNER_PID" tap0 9>>"$SLIRP_READY" &
 SLIRP_PID=$!
 
-wait
+fg %1
 kill "$SLIRP_PID" 2>/dev/null || true
