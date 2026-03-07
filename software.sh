@@ -115,7 +115,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
     
     if [ ! -f /etc/apt/sources.list.d/vscode.sources ]; then
         echo -e "\n[software.sh] Installing vscode.sources"
-        sudo install -D -o root -g root -m 644 "$CALL_DIR/vscode.sources" /etc/apt/sources.list.d/vscode.sources
+        sudo install -D -o root -g root -m 644 apt-sources/vscode.sources /etc/apt/sources.list.d/vscode.sources
     fi
     
     sudo apt install apt-transport-https
@@ -138,7 +138,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
     
     if [ ! -f /etc/apt/sources.list.d/nodesource.sources ]; then
         echo -e "\n[software.sh] Installing nodesource.sources"
-        sudo install -D -o root -g root -m 644 "$CALL_DIR/nodesource.sources" /etc/apt/sources.list.d/nodesource.sources
+        sudo install -D -o root -g root -m 644 apt-sources/nodesource.sources /etc/apt/sources.list.d/nodesource.sources
     fi
 
     if ! command -v node >/dev/null 2>&1; then
@@ -169,7 +169,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
         export VERSION_CODENAME
 
         # substutute this version codename into the sources file. 
-        envsubst < kitware.sources.in > /tmp/kitware.sources
+        envsubst < apt-sources/kitware.sources.in > /tmp/kitware.sources
         sudo install -D -o root -g root -m 644 /tmp/kitware.sources /etc/apt/sources.list.d/kitware.sources
         sudo apt-get update
         sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
@@ -190,10 +190,10 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
         sudo install -o root -g root -m 644 /tmp/google.gpg /usr/share/keyrings/google.gpg
     fi
 
-    if [ ! -f /etc/apt/sources.list.d/google.sources ]; then
+    if [ ! -f /etc/apt/sources.list.d/google-chrome.list ]; then
         echo -e "\n[software.sh] Adding google deb repo..."
-        envsubst < google.sources.in \
-            | sudo tee /etc/apt/sources.list.d/google.sources >/dev/null
+        envsubst < apt-sources/google-chrome.list.in \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
         sudo apt update
     fi
 

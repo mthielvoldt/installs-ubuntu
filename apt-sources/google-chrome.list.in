@@ -1,0 +1,1 @@
+deb [arch=$DPKG_ARCH] https://dl.google.com/linux/chrome/deb/ stable main
