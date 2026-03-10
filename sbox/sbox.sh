@@ -31,6 +31,7 @@ socat \
   --ro-bind /usr /usr \
   --symlink /usr/lib64 /lib64 \
   --ro-bind /etc/alternatives etc/alternatives \
+  --ro-bind /etc/ssl/certs /etc/ssl/certs \
   --ro-bind /bin /bin \
   --ro-bind $HOME/.local $HOME/.local \
   --ro-bind $HOME/.bashrc $HOME/.bashrc \

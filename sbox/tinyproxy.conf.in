@@ -228,7 +228,7 @@ ViaProxyName "tinyproxy"
 #
 # Filter: This allows you to specify the location of the filter file.
 #
-#Filter "/etc/tinyproxy/filter"
+Filter "$PWD/tinyproxy.filter"
 
 #
 # FilterURLs: Filter based on URLs rather than domains.
@@ -236,9 +236,12 @@ ViaProxyName "tinyproxy"
 #FilterURLs On
 
 #
-# FilterType: Use bre (default), ere, or fnmatch for filtering.
+# FilterType: Matching features (regular expressions) for filtering.
+# bre (basic re, default), 
+# ere (extended re), 
+# fnmatch (see man fnmatch) 
 #
-#FilterType fnmatch
+FilterType fnmatch
 
 #
 # FilterCaseSensitive: Use case sensitive regular expressions.
@@ -255,7 +258,7 @@ ViaProxyName "tinyproxy"
 # to deny everything which is _not_ specifically allowed by the filter
 # file.
 #
-#FilterDefaultDeny Yes
+FilterDefaultDeny Yes
 
 #
 # Anonymous: If an Anonymous keyword is present, then anonymous proxying
