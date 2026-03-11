@@ -28,6 +28,7 @@ https://github.com/anthropic-experimental/sandbox-runtime v0.0.39
 --setenv CLOUDSDK_PROXY_TYPE https \
 --setenv CLOUDSDK_PROXY_ADDRESS localhost \
 --setenv CLOUDSDK_PROXY_PORT 3128 \
+$PWD/apply-seccomp $PWD$/unix-block.bpf "$@"' -- "$@"
 ```
 
 ## Unused sandboxed command line
