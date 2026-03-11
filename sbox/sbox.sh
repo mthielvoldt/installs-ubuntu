@@ -7,7 +7,7 @@ httpSocketPath="/tmp/claude-http.sock"
 innerProxyPort=3128
 
 cleanup() {
-  echo "Picking up socks left by tiny and the sock cat."
+  echo "goodbye tiny and outer sock cat"
   kill %1 %2 2>/dev/null
   sleep 0.1
   echo >> $tmp/tinyproxy.log
@@ -27,6 +27,7 @@ socat \
 
 /usr/bin/bwrap \
   --die-with-parent \
+  --new-session \
   --unshare-net \
   --unshare-pid \
   --ro-bind /usr /usr \
@@ -53,10 +54,10 @@ socat \
   --dev /dev \
   --proc /proc \
   --chdir $PWD \
-  -- /usr/bin/bash -c "/usr/bin/bash -c '
+  -- /usr/bin/bash -c "
     socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null 2>&1 &
-    trap \"kill %1 2>/dev/null; exit\" EXIT
-    /usr/bin/bash -c bash'"
+    trap \"echo goodbye inner sock cat; kill %1 2>/dev/null; exit\" EXIT
+    \"$@\"" -- "$@"
 
 
 # -- /usr/bin/bash -c '
