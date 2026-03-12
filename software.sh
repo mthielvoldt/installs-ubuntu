@@ -12,7 +12,8 @@ echo "Installing system software.  Press:
   'l' libre office writer, calc
   'n' node.js v20 (to change node version, edit nodesource.sources)
   's' ssh key
-  'u' for utilities (tree...)
+  'u' for apt utilities (tree...)
+  'U' for user setup (groups)
   'v' for Visual Studio Code
 "
 # Read single character (-n 1) silently (-s), without Enter (-r), 
@@ -27,6 +28,14 @@ fi
 CALL_DIR=$(pwd)
 export DPKG_ARCH=$(dpkg --print-architecture)
 
+# -- User setup --
+if [ "$confirm" == "a" ] || [ "$confirm" == "U" ]; then
+    if [[ $USER == "root" ]]; then
+        echo "Script run as root.  Restart as your normal user."
+        exit -1
+    fi
+    sudo usermod -a -G dialout,tinyproxy $USER
+fi
 
 # -- Create ~/bin if not there --
 if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
