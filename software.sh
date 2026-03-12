@@ -10,7 +10,8 @@ echo "Installing system software.  Press:
   'g' git (latest)
   'h' home mods
   'l' libre office writer, calc
-  'n' node.js v20 (to change node version, edit nodesource.sources)
+  'L' Claude
+  'n' node.js v24 (to change node version, edit NODE_VERSION)
   's' ssh key
   'u' for apt utilities (tree...)
   'U' for user setup (groups)
@@ -27,6 +28,7 @@ fi
 
 CALL_DIR=$(pwd)
 export DPKG_ARCH=$(dpkg --print-architecture)
+export NODE_VERSION=24
 
 # -- User setup --
 if [ "$confirm" == "a" ] || [ "$confirm" == "U" ]; then
@@ -76,7 +78,20 @@ fi
 if [ "$confirm" == "a" ] || [ "$confirm" == "u" ]; then
     echo -e "\n[software.sh] Installing apt utilities..."
     sudo apt update
-    sudo apt install tree python3-venv mpv
+    sudo apt install tree python3-venv mpv curl libcap-dev ripgrep tinyproxy
+    # ripgrep: faster recursive grep, doesn't search .gitignore'd files. 
+    # libcap-dev: bubblewrap compile dependency
+    # slirp4netns: for making host networks available to a sandbox
+    # bubblewrap: for sandboxing
+    # mpv: a performant movie player with wayland compatability
+    # tinyproxy: an http proxy, used in sbox
+    
+    if [[ ! -f /etc/apparmor.d/bwrap ]]; then
+        echo "[software.sh] Creating appArmor profiles..."
+        sudo install -D -o root -g root -m 644 -t /etc/apparmor.d apparmor.d/*
+        echo "[software.sh] Reloading apparmor service..."
+        sudo systemctl reload apparmor
+    fi
 fi
 
 # -- Git from ppa (because github hosted runner ubuntu-latest has the latest git, apt does not.)
@@ -136,24 +151,18 @@ fi
 
 # -- Node.js --
 if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
-
-    if [[ ! -f "/usr/share/keyrings/nodesource.gpg" ]]; then
-        echo -e "\n[software.sh] Adding nodesource.gpg to keyrings"
-        wget -O - https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-            | gpg --dearmor > nodesource.gpg
-        sudo install -D -o root -g root -m 644 nodesource.gpg /usr/share/keyrings/nodesource.gpg
-        rm -f nodesource.gpg
+    if [[ -d $HOME/.nvm ]]; then
+        echo "nvm already installed."
+    else
+        echo -e "\n[software.sh] Download and install nvm..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+        # in lieu of restarting the shell
+        \. "$HOME/.nvm/nvm.sh"
     fi
-    
-    if [ ! -f /etc/apt/sources.list.d/nodesource.sources ]; then
-        echo -e "\n[software.sh] Installing nodesource.sources"
-        sudo install -D -o root -g root -m 644 apt-sources/nodesource.sources /etc/apt/sources.list.d/nodesource.sources
-    fi
-
-    if ! command -v node >/dev/null 2>&1; then
-        echo -e "\n[software.sh] Installing Node"
-        sudo apt update
-        sudo apt install nodejs
+    if ! command -v node >/dev/null; then
+        nvm install $NODE_VERSION
+        node -v
+        npm -v
     fi
 fi
 
@@ -207,6 +216,16 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
     fi
 
     sudo apt install google-chrome-stable
+fi
+
+# -- Claude --
+if [ "$confirm" == "a" ] || [ "$confirm" == "L" ]; then
+    if [[ -d "$HOME/.claude" ]]; then
+        echo -e "\n[software.sh] Claude already installed. - skipping."
+    else
+        echo -e "\n[software.sh] Installing Claude..."
+        curl -fsSL https://claude.ai/install.sh | bash
+    fi
 fi
 
 # --  --
