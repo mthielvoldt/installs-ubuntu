@@ -3,6 +3,7 @@ set -e
 
 echo "Installing system software.  Press:
   'a' for all
+  'A' Arduino
   'b' build tools
   'c' cmake
   'C' Chrome browser
@@ -37,6 +38,23 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "U" ]; then
         exit -1
     fi
     sudo usermod -a -G dialout,tinyproxy $USER
+fi
+
+if [[ $confirm == "a" || $confirm == "A" ]]; then
+    if find $HOME/Downloads -maxdepth 1 -type d -name "arduino-ide*" | grep -q .; then 
+        echo -e "\n[software.sh] Arduino ide already installed"
+    else
+        DEST_DIR=$HOME/Downloads
+        echo -e "\n[software.sh] Downloading Arduino IDE to $DEST_DIR"
+        ARDUINO_NAME=arduino-ide_2.3.8_Linux_64bit
+        ARDUINO_ZIP="$DEST_DIR/arduino-cli.zip"
+        echo -e "\n[software.sh] Installing arduino cli..."
+        wget -O $ARDUINO_ZIP https://downloads.arduino.cc/arduino-ide/$ARDUINO_NAME.zip
+        unzip $ARDUINO_ZIP -d $DEST_DIR
+        mv $DEST_DIR/$ARDUINO_NAME/chrome-sandbox{,.original}
+        sudo cp -p /opt/google/chrome/chrome-sandbox $DEST_DIR/$ARDUINO_NAME/
+        rm $ARDUINO_ZIP
+    fi
 fi
 
 # -- Create ~/bin if not there --

@@ -1,4 +1,5 @@
 # MGT Aliases below
+alias arduino='~/Downloads/arduino-ide_2.3.8_Linux_64bit/arduino-ide'
 alias saleae='~/Downloads/squashfs-root/Logic --no-sandbox'
 alias lssubmodules='find -mindepth 1 -maxdepth 4 -type d -exec [ -d {}/.git ] \; -prune -print | tee /dev/tty | wc -l'
 alias addsubmodules='find -mindepth 1 -maxdepth 4 -type d -exec [ -d {}/.git ] \; -prune -print \
@@ -9,6 +10,6 @@ alias addsubmodules='find -mindepth 1 -maxdepth 4 -type d -exec [ -d {}/.git ] \
     echo "git submodule add $MODULE_URL $MODULE_PATH"
   done '
 alias zephcomm='picocom /dev/ttyACM0 -b 115200'
-alias tcom='curl http://httpbin.org/ip'
+alias tcom='curl https://httpbin.org/ip'
 
 export MGT_ALIASES=y
