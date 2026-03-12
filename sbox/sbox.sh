@@ -15,6 +15,13 @@ cleanup() {
 }
 
 mkdir -p $tmp
+
+echo "127.0.0.1 localhost" > $tmp/hosts
+mapfile -t domains < "$thisDir/tinyproxy.filter"
+for domain in "${domains[@]}"; do
+  echo "$(dig +short $domain | head -n 1) $domain" >> $tmp/hosts
+done
+
 envsubst < $thisDir/tinyproxy.conf.in > $tmp/tinyproxy.conf 
 tinyproxy -d -c $tmp/tinyproxy.conf &
 
@@ -34,13 +41,14 @@ socat \
   --symlink /usr/lib64 /lib64 \
   --ro-bind /etc/alternatives etc/alternatives \
   --ro-bind /etc/ssl/certs /etc/ssl/certs \
+  --ro-bind $tmp/hosts /etc/hosts \
   --ro-bind /bin /bin \
   --ro-bind $HOME/installs/aliases.sh $HOME/installs/aliases.sh \
-  --ro-bind $HOME/.local $HOME/.local \
+  --ro-bind $HOME/.nvm/versions/node/v24.14.0 $HOME/.nvm/versions/node/v24.14.0 \
+  --bind    $HOME/.nvm/versions/node/v24.14.0/lib/node_modules/@anthropic-ai/claude-code $HOME/.nvm/versions/node/v24.14.0/lib/node_modules/@anthropic-ai/claude-code \
   --ro-bind $HOME/.bashrc $HOME/.bashrc \
+  --ro-bind $thisDir/inner.sh $thisDir/inner.sh \
   --bind $HOME/.npm/_logs $HOME/.npm/_logs \
-  --bind $HOME/.claude $HOME/.claude \
-  --bind $HOME/.claude.json $HOME/.claude.json \
   --bind $httpSocketPath $httpSocketPath \
   --bind $PWD $PWD \
   --setenv SANDBOX_RUNTIME 1 \
@@ -51,14 +59,20 @@ socat \
   --setenv HTTPS_PROXY http\://localhost\:$innerProxyPort \
   --setenv http_proxy http\://localhost\:$innerProxyPort \
   --setenv https_proxy http\://localhost\:$innerProxyPort \
+  --setenv CLAUDE_CODE_HOST_HTTP_PROXY_PORT $innerProxyPort \
+  --setenv NODE_USE_ENV_PROXY 1 \
   --dev /dev \
   --proc /proc \
   --chdir $PWD \
   -- /usr/bin/bash -c "
-    socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null 2>&1 &
+    socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null &
     trap \"echo goodbye inner sock cat; kill %1 2>/dev/null; exit\" EXIT
     \"$@\"" -- "$@"
 
+# >/dev/null 2>&1
+
+# --bind $HOME/.claude $HOME/.claude \
+# --bind $HOME/.claude.json $HOME/.claude.json \
 
 # -- /usr/bin/bash -c '
 #     socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null 2>&1 &
@@ -66,5 +80,6 @@ socat \
 #     "$@"' -- "$@"
 
 # apply-seccomp block-unix-sockets.bpf "$@"' -- "$@"
+
 
 cleanup

@@ -150,6 +150,8 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
 fi
 
 # -- Node.js --
+# Use nvm instead of apt so we can `npm install -g` without being root.
+# Also, it really seems the ecosystem wants to be able to run multiple node versions.
 if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
     if [[ -d $HOME/.nvm ]]; then
         echo "nvm already installed."
