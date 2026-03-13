@@ -15,6 +15,9 @@ cleanup() {
 }
 
 mkdir -p $tmp
+if [ ! -e $tmp/inner-socat-err.log ]; then
+  touch $tmp/inner-socat-err.log
+fi
 
 echo "127.0.0.1 localhost" > $tmp/hosts
 mapfile -t domains < "$thisDir/tinyproxy.filter"
@@ -28,10 +31,14 @@ tinyproxy -d -c $tmp/tinyproxy.conf &
 # Use -v to see data. 
 socat \
   UNIX-LISTEN:$httpSocketPath,fork,reuseaddr \
-  TCP:localhost:$outerProxyPort,keepalive,keepidle=10,keepintvl=5,keepcnt=3 &
+  TCP:localhost:$outerProxyPort,keepalive,keepidle=10,keepintvl=5,keepcnt=3 >$tmp/outer-socat.log 2>$tmp/outer-socat-err.log &
 
-# --new-session \
+echo "Waiting for socat to create socket..."
+until [ -e "$httpSocketPath" ]; do
+  sleep 0.1
+done
 
+echo "Launching sandbox"
 /usr/bin/bwrap \
   --die-with-parent \
   --new-session \
@@ -42,6 +49,7 @@ socat \
   --ro-bind /etc/alternatives etc/alternatives \
   --ro-bind /etc/ssl/certs /etc/ssl/certs \
   --ro-bind $tmp/hosts /etc/hosts \
+  --bind $tmp/inner-socat-err.log /var/log/socat-err.log \
   --ro-bind /bin /bin \
   --ro-bind $HOME/installs/aliases.sh $HOME/installs/aliases.sh \
   --ro-bind $HOME/.nvm/versions/node/v24.14.0 $HOME/.nvm/versions/node/v24.14.0 \
@@ -65,7 +73,7 @@ socat \
   --proc /proc \
   --chdir $PWD \
   -- /usr/bin/bash -c "
-    socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null &
+    socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null 2>/var/log/socat-err.log &
     trap \"echo goodbye inner sock cat; kill %1 2>/dev/null; exit\" EXIT
     \"$@\"" -- "$@"
 
