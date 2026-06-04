@@ -96,7 +96,7 @@ fi
 if [ "$confirm" == "a" ] || [ "$confirm" == "u" ]; then
     echo -e "\n[software.sh] Installing apt utilities..."
     sudo apt update
-    sudo apt install tree python3-venv mpv curl libcap-dev ripgrep tinyproxy
+    sudo apt install tree python3-venv mpv curl libcap-dev ripgrep tinyproxy rclone
     # ripgrep: faster recursive grep, doesn't search .gitignore'd files. 
     # libcap-dev: bubblewrap compile dependency
     # slirp4netns: for making host networks available to a sandbox

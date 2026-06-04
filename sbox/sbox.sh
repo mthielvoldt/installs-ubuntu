@@ -48,13 +48,18 @@ echo "Launching sandbox"
   --symlink /usr/lib64 /lib64 \
   --ro-bind /etc/alternatives etc/alternatives \
   --ro-bind /etc/ssl/certs /etc/ssl/certs \
+  --ro-bind /lib /lib \
   --ro-bind $tmp/hosts /etc/hosts \
   --bind $tmp/inner-socat-err.log /var/log/socat-err.log \
   --ro-bind /bin /bin \
   --ro-bind $HOME/installs/aliases.sh $HOME/installs/aliases.sh \
   --ro-bind $HOME/.nvm/versions/node/v24.14.0 $HOME/.nvm/versions/node/v24.14.0 \
-  --bind    $HOME/.nvm/versions/node/v24.14.0/lib/node_modules/@anthropic-ai/claude-code $HOME/.nvm/versions/node/v24.14.0/lib/node_modules/@anthropic-ai/claude-code \
+  --ro-bind $HOME/.local/bin $HOME/.local/bin \
+  --bind    $HOME/.local/share/claude $HOME/.local/share/claude \
+  --bind    $HOME/.claude $HOME/.claude \
+  --bind    $HOME/.claude.json $HOME/.claude.json \
   --ro-bind $HOME/.bashrc $HOME/.bashrc \
+  --ro-bind $HOME/.espressif $HOME/.espressif \
   --ro-bind $thisDir/inner.sh $thisDir/inner.sh \
   --bind $HOME/.npm/_logs $HOME/.npm/_logs \
   --bind $httpSocketPath $httpSocketPath \
@@ -78,9 +83,6 @@ echo "Launching sandbox"
     \"$@\"" -- "$@"
 
 # >/dev/null 2>&1
-
-# --bind $HOME/.claude $HOME/.claude \
-# --bind $HOME/.claude.json $HOME/.claude.json \
 
 # -- /usr/bin/bash -c '
 #     socat TCP-LISTEN:$innerProxyPort,fork,reuseaddr UNIX-CONNECT:$httpSocketPath >/dev/null 2>&1 &
