@@ -8,7 +8,7 @@ echo "Installing system software.  Press:
   'c' cmake
   'C' Chrome browser
   'd' for Dropbox
-  'D' for Docker
+  'D' for Docker Desktop
   'g' git (latest)
   'h' home mods
   'l' libre office writer, calc
@@ -189,8 +189,9 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "D" ]; then
         sudo install -D -o root -g root -m 644 /tmp/docker.sources $APT_SOURCES_DIR/docker.sources
     fi
     mkdir -p ~/installs/deb
-    sudo apt update
-    sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    wget -O ~/installs/deb/docker-desktop-amd64.deb "https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb"
+    sudo apt-get update
+    sudo apt install ~/installs/deb/docker-desktop-amd64.deb
 fi
 
 # -- Node.js --
