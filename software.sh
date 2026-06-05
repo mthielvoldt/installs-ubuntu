@@ -8,6 +8,7 @@ echo "Installing system software.  Press:
   'c' cmake
   'C' Chrome browser
   'd' for Dropbox
+  'D' for Docker
   'g' git (latest)
   'h' home mods
   'l' libre office writer, calc
@@ -28,7 +29,13 @@ if [[ "$confirm" == "" ]] ; then
 fi
 
 CALL_DIR=$(pwd)
+APT_SOURCES_DIR="/etc/apt/sources.list.d"
+KEYRING_DIR="/usr/share/keyrings"
+
 export DPKG_ARCH=$(dpkg --print-architecture)
+# Get the version code of this ubuntu (bionic, focal, jammy, noble)
+. /etc/os-release
+export VERSION_CODENAME
 export NODE_VERSION=24
 
 # -- User setup --
@@ -40,6 +47,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "U" ]; then
     sudo usermod -a -G dialout,tinyproxy $USER
 fi
 
+# Arduino
 if [[ $confirm == "a" || $confirm == "A" ]]; then
     if find $HOME/Downloads -maxdepth 1 -type d -name "arduino-ide*" | grep -q .; then 
         echo -e "\n[software.sh] Arduino ide already installed"
@@ -147,17 +155,17 @@ fi
 # -- Visual Studio Code --
 if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
 
-    if [[ ! -f "/usr/share/keyrings/microsoft.gpg" ]]; then
+    if [[ ! -f "$KEYRING_DIR/microsoft.gpg" ]]; then
         echo -e "\n[software.sh] Adding microsoft.gpg to keyrings"
         wget -O - https://packages.microsoft.com/keys/microsoft.asc \
             | gpg --dearmor > microsoft.gpg
-        sudo install -D -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft.gpg
+        sudo install -D -o root -g root -m 644 microsoft.gpg $KEYRING_DIR/microsoft.gpg
         rm -f microsoft.gpg
     fi
     
-    if [ ! -f /etc/apt/sources.list.d/vscode.sources ]; then
+    if [ ! -f $APT_SOURCES_DIR/vscode.sources ]; then
         echo -e "\n[software.sh] Installing vscode.sources"
-        sudo install -D -o root -g root -m 644 apt-sources/vscode.sources /etc/apt/sources.list.d/vscode.sources
+        sudo install -D -o root -g root -m 644 apt-sources/vscode.sources $APT_SOURCES_DIR/vscode.sources
     fi
     
     sudo apt install apt-transport-https
@@ -165,6 +173,24 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
     sudo apt install code
     
     xargs -n 1 code --install-extension < vscode-extensions.txt
+fi
+
+# -- Docker Desktop --
+if [ "$confirm" == "a" ] || [ "$confirm" == "D" ]; then
+    if [[ ! -f "$KEYRING_DIR/docker.asc" ]]; then
+        echo -e "\n[software.sh] Adding docker.asc to keyrings"
+        mkdir -p tmp
+        wget -O tmp/docker.asc https://download.docker.com/linux/ubuntu/gpg 
+        sudo install -D -o root -g root -m 644 tmp/docker.asc $KEYRING_DIR/docker.asc
+    fi
+    if [[ ! -f "$APT_SOURCES_DIR/docker.sources" ]]; then
+        echo -e "\n[software.sh] Installing docker.sources"
+        envsubst < apt-sources/docker.sources.in > /tmp/docker.sources
+        sudo install -D -o root -g root -m 644 /tmp/docker.sources $APT_SOURCES_DIR/docker.sources
+    fi
+    mkdir -p ~/installs/deb
+    sudo apt update
+    sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 fi
 
 # -- Node.js --
@@ -191,26 +217,22 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
 
     # Kitware has a package to manage key rotation.  We need to additionally check that 
     # this package (kitware-archive-keyring) isn't installed before manually copying the gpg key.
-    if [ ! -f "/usr/share/doc/kitware-archive-keyring/copyright" ] && [ ! -f "/usr/share/keyrings/kitware-archive-keyring.gpg" ]; then
+    if [ ! -f "/usr/share/doc/kitware-archive-keyring/copyright" ] && [ ! -f "$KEYRING_DIR/kitware-archive-keyring.gpg" ]; then
         echo -e "\n[software.sh] Adding kitware.gpg to keyrings"
         wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc \
             | gpg --dearmor > kitware.gpg
-        sudo install -D -o root -g root -m 644 kitware.gpg /usr/share/keyrings/kitware-archive-keyring.gpg
+        sudo install -D -o root -g root -m 644 kitware.gpg $KEYRING_DIR/kitware-archive-keyring.gpg
         rm -f kitware.gpg
     fi
     
-    if [ ! -f /etc/apt/sources.list.d/kitware.sources ]; then
+    if [ ! -f $APT_SOURCES_DIR/kitware.sources ]; then
         echo -e "\n[software.sh] Adding kitware deb repo..."
-
-        # Get the version code of this ubuntu (bionic, focal, jammy, noble)
-        . /etc/os-release
-        export VERSION_CODENAME
 
         # substutute this version codename into the sources file. 
         envsubst < apt-sources/kitware.sources.in > /tmp/kitware.sources
-        sudo install -D -o root -g root -m 644 /tmp/kitware.sources /etc/apt/sources.list.d/kitware.sources
+        sudo install -D -o root -g root -m 644 /tmp/kitware.sources $APT_SOURCES_DIR/kitware.sources
         sudo apt-get update
-        sudo rm /usr/share/keyrings/kitware-archive-keyring.gpg
+        sudo rm $KEYRING_DIR/kitware-archive-keyring.gpg
     fi
 
     if ! command -v cmake >/dev/null 2>&1; then
@@ -221,17 +243,17 @@ fi
 
 # -- Chrome --
 if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
-    if [ ! -f /usr/share/keyrings/google.gpg ]; then
+    if [ ! -f $KEYRING_DIR/google.gpg ]; then
         echo -e "\n[software.sh] Adding google key to keyring"
         wget -O - https://dl-ssl.google.com/linux/linux_signing_key.pub \
             | gpg --dearmor > /tmp/google.gpg
-        sudo install -o root -g root -m 644 /tmp/google.gpg /usr/share/keyrings/google.gpg
+        sudo install -o root -g root -m 644 /tmp/google.gpg $KEYRING_DIR/google.gpg
     fi
 
-    if [ ! -f /etc/apt/sources.list.d/google-chrome.list ]; then
+    if [ ! -f $APT_SOURCES_DIR/google-chrome.list ]; then
         echo -e "\n[software.sh] Adding google deb repo..."
         envsubst < apt-sources/google-chrome.list.in \
-            | sudo tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
+            | sudo tee $APT_SOURCES_DIR/google-chrome.list >/dev/null
         sudo apt update
     fi
 
