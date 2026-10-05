@@ -263,11 +263,20 @@ fi
 
 # -- Claude --
 if [ "$confirm" == "a" ] || [ "$confirm" == "L" ]; then
-    if [[ -d "$HOME/.claude" ]]; then
-        echo -e "\n[software.sh] Claude already installed. - skipping."
+
+    if [ ! -f  $KEYRING_DIR/claude-code.asc ]; then
+        echo -e "\n[software.sh] Adding claude-code to keyring"
+        wget -O /tmp/claude-code.asc https://downloads.claude.ai/keys/claude-code.asc
+        sudo install -o root -g root -m 644 /tmp/claude-code.asc $KEYRING_DIR/claude-code.asc
+        gpg --show-keys $KEYRING_DIR/claude-code.asc
+        echo "deb [signed-by=$KEYRING_DIR/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+            | sudo tee $APT_SOURCES_DIR/claude-code.list
+    fi
+    if command -v claude >/dev/null 2>&1; then
+        echo -e "\n[software.sh] Claude already installed. To update: sudo apt upgrade claude-code"
     else
-        echo -e "\n[software.sh] Installing Claude..."
-        curl -fsSL https://claude.ai/install.sh | bash
+        sudo apt update
+        sudo apt install claude-code
     fi
 fi
 
