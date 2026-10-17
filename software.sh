@@ -28,6 +28,7 @@ if [[ "$confirm" == "" ]] ; then
 fi
 
 CALL_DIR=$(pwd)
+SCRIPT_DIR=$( cd -- $( dirname $0 ) &> /dev/null && pwd )
 APT_SOURCES_DIR="/etc/apt/sources.list.d"
 KEYRING_DIR="/usr/share/keyrings"
 
@@ -72,8 +73,8 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
         export PATH="$HOME/bin:$PATH"
     fi
     if [[ ! $MGT_ALIASES ]]; then
-        echo -e "\n[software.sh] Adding 'source ~/installs/aliases.sh' to ~/.profile"
-        echo -e "\n# MGT Aliases\nsource ~/installs/aliases.sh" >> ~/.bashrc
+        echo -e "\n[software.sh] Adding 'source $SCRIPT_DIR/aliases.sh' to ~/.bashrc"
+        echo -e "\n# MGT Aliases\nsource $SCRIPT_DIR/aliases.sh" >> ~/.bashrc
     fi
 fi
 

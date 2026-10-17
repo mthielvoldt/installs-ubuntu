@@ -17,5 +17,6 @@ alias stprog='./generate && $STPROG -c port=SWD -d build/combined.bin 0x08000000
 alias streset='$STPROG -c port=SWD -rst'
 alias stflashassets='$STPROG -c port=SWD -d build/TSDHD-TSS013-1-assets.bin 0xA0000000 -el "$HOME/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/ExternalLoader/TSDHD-TSS013-1.stldr" -rst'
 alias stflashassetsB='$STPROG -c port=SWD -d build/TSDHD-TSS013-1-assets.bin 0xA0380000 -el "$HOME/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/ExternalLoader/TSDHD-TSS013-1.stldr" -rst'
+alias batt='cat /sys/class/power_supply/BAT0/uevent'
 
 export MGT_ALIASES=y
