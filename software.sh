@@ -11,7 +11,6 @@ echo "Installing system software.  Press:
   'D' for Docker Desktop
   'g' git (latest)
   'h' home mods
-  'l' libre office writer, calc
   'L' Claude
   'n' node.js v24 (to change node version, edit NODE_VERSION)
   's' ssh key
@@ -144,12 +143,6 @@ fi
 if [ "$confirm" == "a" ] || [ "$confirm" == "b" ]; then
     echo -e "\n[software.sh] Installing build tools..."
     sudo apt install build-essential
-fi
-
-# -- Libre Office from apt --
-if [ "$confirm" == "a" ] || [ "$confirm" == "l" ]; then
-    echo -e "\n[software.sh] Installing Libre office..."
-    sudo apt install libreoffice-calc libreoffice-writer apt-transport-https
 fi
 
 # -- Visual Studio Code --
