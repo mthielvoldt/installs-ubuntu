@@ -251,10 +251,10 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
         sudo install -o root -g root -m 644 /tmp/google.gpg $KEYRING_DIR/google.gpg
     fi
 
-    if [ ! -f $APT_SOURCES_DIR/google-chrome.list ]; then
+    if [ ! -f $APT_SOURCES_DIR/google-chrome.sources ]; then
         echo -e "\n[software.sh] Adding google deb repo..."
-        envsubst < apt-sources/google-chrome.list.in \
-            | sudo tee $APT_SOURCES_DIR/google-chrome.list >/dev/null
+        envsubst < apt-sources/google-chrome.sources.in \
+            | sudo tee $APT_SOURCES_DIR/google-chrome.sources >/dev/null
         sudo apt update
     fi
 
