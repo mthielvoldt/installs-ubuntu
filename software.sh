@@ -2,7 +2,6 @@
 set -e
 
 echo "Installing system software.  Press:
-  'a' for all
   'A' Arduino
   'b' build tools
   'c' cmake
@@ -39,7 +38,7 @@ export VERSION_CODENAME
 export NODE_VERSION=24
 
 # -- User setup --
-if [ "$confirm" == "a" ] || [ "$confirm" == "U" ]; then
+if [ "$confirm" == "U" ]; then
     if [[ $USER == "root" ]]; then
         echo "Script run as root.  Restart as your normal user."
         exit -1
@@ -48,7 +47,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "U" ]; then
 fi
 
 # Arduino
-if [[ $confirm == "a" || $confirm == "A" ]]; then
+if [ "$confirm" == "A" ]; then
     if find $HOME/Downloads -maxdepth 1 -type d -name "arduino-ide*" | grep -q .; then 
         echo -e "\n[software.sh] Arduino ide already installed"
     else
@@ -66,7 +65,7 @@ if [[ $confirm == "a" || $confirm == "A" ]]; then
 fi
 
 # -- Create ~/bin if not there --
-if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
+if [ "$confirm" == "h" ]; then
     if [ ! -d "$HOME/bin" ]; then
         echo -e "\n[software.sh] Creating ~/bin"
         mkdir -p "$HOME/bin"
@@ -79,7 +78,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "h" ]; then
 fi
 
 # -- Dropbox --
-if [ "$confirm" == "a" ] || [ "$confirm" == "d" ]; then
+if [ "$confirm" == "d" ]; then
     
     if [ ! -d "$HOME/.dropbox-dist" ]; then
         echo -e "\n[software.sh] Installing Dropbox daemon into ~/.dropbox-dist/ ..."
@@ -101,7 +100,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "d" ]; then
 fi
 
 # -- Generic utilities from apt --
-if [ "$confirm" == "a" ] || [ "$confirm" == "u" ]; then
+if [ "$confirm" == "u" ]; then
     echo -e "\n[software.sh] Installing apt utilities..."
     sudo apt update
     sudo apt install tree python3-venv mpv curl libcap-dev ripgrep tinyproxy rclone
@@ -121,7 +120,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "u" ]; then
 fi
 
 # -- Git from ppa (because github hosted runner ubuntu-latest has the latest git, apt does not.)
-if [ "$confirm" == "a" ] || [ "$confirm" == "g" ]; then
+if [ "$confirm" == "g" ]; then
     echo -e "\n[software.sh] Installing git from PPA..."
     sudo add-apt-repository ppa:git-core/ppa
     sudo apt update
@@ -131,7 +130,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "g" ]; then
 fi
 
 # -- Ssh key (for github) --
-if [ "$confirm" == "a" ] || [ "$confirm" == "s" ]; then
+if [ "$confirm" == "s" ]; then
     if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
         echo -e "\n[software.sh] Generating ssh key for mthielvoldt@gmail.com to ~/.ssh"
         ssh-keygen -t ed25519 -C "mthielvoldt@gmail.com" -N "" -f "$HOME/.ssh/id_ed25519"
@@ -141,13 +140,13 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "s" ]; then
 fi
 
 # -- Native Build from apt --
-if [ "$confirm" == "a" ] || [ "$confirm" == "b" ]; then
+if [ "$confirm" == "b" ]; then
     echo -e "\n[software.sh] Installing build tools..."
     sudo apt install build-essential
 fi
 
 # -- Visual Studio Code --
-if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
+if [ "$confirm" == "v" ]; then
 
     if [[ ! -f "$KEYRING_DIR/microsoft.gpg" ]]; then
         echo -e "\n[software.sh] Adding microsoft.gpg to keyrings"
@@ -172,7 +171,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
 fi
 
 # -- Docker Desktop --
-if [ "$confirm" == "a" ] || [ "$confirm" == "D" ]; then
+if [ "$confirm" == "D" ]; then
     if [[ ! -f "$KEYRING_DIR/docker.asc" ]]; then
         echo -e "\n[software.sh] Adding docker.asc to keyrings"
         mkdir -p tmp
@@ -193,7 +192,7 @@ fi
 # -- Node.js --
 # Use nvm instead of apt so we can `npm install -g` without being root.
 # Also, it really seems the ecosystem wants to be able to run multiple node versions.
-if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
+if [ "$confirm" == "n" ]; then
     if [[ -d $HOME/.nvm ]]; then
         echo "nvm already installed."
     else
@@ -210,7 +209,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "n" ]; then
 fi
 
 # -- cmake --
-if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
+if [ "$confirm" == "c" ]; then
 
     # Kitware has a package to manage key rotation.  We need to additionally check that 
     # this package (kitware-archive-keyring) isn't installed before manually copying the gpg key.
@@ -239,7 +238,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "c" ]; then
 fi
 
 # -- Chrome --
-if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
+if [ "$confirm" == "C" ]; then
     if [ ! -f $KEYRING_DIR/google.gpg ]; then
         echo -e "\n[software.sh] Adding google key to keyring"
         wget -O - https://dl-ssl.google.com/linux/linux_signing_key.pub \
@@ -258,7 +257,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "C" ]; then
 fi
 
 # -- Claude --
-if [ "$confirm" == "a" ] || [ "$confirm" == "L" ]; then
+if [ "$confirm" == "L" ]; then
 
     if [ ! -f  $KEYRING_DIR/claude-code.asc ]; then
         echo -e "\n[software.sh] Adding claude-code to keyring"
@@ -277,7 +276,7 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "L" ]; then
 fi
 
 # --  --
-if [ "$confirm" == "a" ] || [ "$confirm" == "a" ]; then
+if [ "$confirm" == "a" ]; then
     if [ !  ]; then
         echo -e "\n[software.sh] "
     fi
