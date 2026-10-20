@@ -1,4 +1,5 @@
 # MGT Aliases below
+MGT_ALIASES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 export STPROG="$HOME/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI"
 alias addsubmodules='find -mindepth 1 -maxdepth 4 -type d -exec [ -d {}/.git ] \; -prune -print \
   | while read -r MODULE_PATH; do 
@@ -10,7 +11,7 @@ alias addsubmodules='find -mindepth 1 -maxdepth 4 -type d -exec [ -d {}/.git ] \
 alias arduino='~/Downloads/arduino-ide_2.3.8_Linux_64bit/arduino-ide'
 alias lssubmodules='find -mindepth 1 -maxdepth 4 -type d -exec [ -d {}/.git ] \; -prune -print | tee /dev/tty | wc -l'
 alias saleae='~/Downloads/squashfs-root/Logic --no-sandbox'
-alias sbox='~/installs/sbox/sbox.sh'
+alias sbox="$MGT_ALIASES_DIR/sbox/sbox.sh"
 alias tcom='curl https://httpbin.org/ip'
 alias zephcomm='picocom /dev/ttyACM0 -b 115200'
 alias stprog='./generate && $STPROG -c port=SWD -d build/combined.bin 0x08000000 -rst'

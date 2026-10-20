@@ -1,0 +1,2 @@
+file r /etc/tinyproxy/sbox.conf,
+file r /etc/tinyproxy/sbox.filter,

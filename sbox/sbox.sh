@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export thisDir=$(dirname $(readlink -f "$0"))
-export tmp=$thisDir/tmp
+export tmp="/tmp/sbox"
 export outerProxyPort=8888
 httpSocketPath="/tmp/claude-http.sock"
 innerProxyPort=3128
@@ -25,8 +25,28 @@ for domain in "${domains[@]}"; do
   echo "$(dig +short $domain | head -n 1) $domain" >> $tmp/hosts
 done
 
-envsubst < $thisDir/tinyproxy.conf.in > $tmp/tinyproxy.conf 
-tinyproxy -d -c $tmp/tinyproxy.conf &
+if ! systemctl is-active --quiet tinyproxy.service; then
+    echo "⚠️  Error: tinyproxy.service is not running!"
+    echo "Please start it manually with: sudo systemctl start tinyproxy.service"
+    exit 1
+fi
+
+envsubst < $thisDir/tinyproxy.conf.in > $tmp/tinyproxy.conf
+if ! cmp -s $tmp/tinyproxy.conf /etc/tinyproxy/tinyproxy.conf; then 
+  echo "tinyproxy.conf stale.  Updating (sudo) ."
+  sudo install -o root -g root -m 644 $tmp/tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
+  updated_tinyproxy='y'
+fi
+if ! cmp -s $thisDir/tinyproxy.filter /etc/tinyproxy/sbox.filter; then
+  echo "Tinyproxy filter stale. Updating (sudo)."
+  sudo install -o root -g root -m 644 $thisDir/tinyproxy.filter /etc/tinyproxy/sbox.filter
+  updated_tinyproxy='y'
+fi
+if [ -v updated_tinyproxy ]; then
+  sudo systemctl restart tinyproxy.service
+  sudo -k
+  echo "🔒 Sudo session cleared."
+fi
 
 # Use -v to see data. 
 socat \
@@ -52,14 +72,11 @@ echo "Launching sandbox"
   --ro-bind $tmp/hosts /etc/hosts \
   --bind $tmp/inner-socat-err.log /var/log/socat-err.log \
   --ro-bind /bin /bin \
-  --ro-bind $HOME/installs/aliases.sh $HOME/installs/aliases.sh \
-  --ro-bind $HOME/.nvm/versions/node/v24.14.0 $HOME/.nvm/versions/node/v24.14.0 \
-  --ro-bind $HOME/.local/bin $HOME/.local/bin \
+  --ro-bind $thisDir/../aliases.sh $thisDir/../aliases.sh \
   --bind    $HOME/.claude $HOME/.claude \
   --bind    $HOME/.claude.json $HOME/.claude.json \
   --ro-bind $HOME/.bashrc $HOME/.bashrc \
   --ro-bind $HOME/.espressif $HOME/.espressif \
-  --bind $HOME/.npm/_logs $HOME/.npm/_logs \
   --bind $httpSocketPath $httpSocketPath \
   --bind $PWD $PWD \
   --setenv SANDBOX_RUNTIME 1 \
@@ -88,6 +105,11 @@ echo "Launching sandbox"
 #     "$@"' -- "$@"
 
 # apply-seccomp block-unix-sockets.bpf "$@"' -- "$@"
+
+## Unused options
+#  --ro-bind $HOME/.nvm/versions/node/v24.14.0 $HOME/.nvm/versions/node/v24.14.0 \
+#  --ro-bind $HOME/.local/bin $HOME/.local/bin \
+#  --bind $HOME/.npm/_logs $HOME/.npm/_logs \
 
 
 cleanup

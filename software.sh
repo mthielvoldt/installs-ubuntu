@@ -2,7 +2,7 @@
 set -e
 
 echo "Installing system software.  Press:
-  'a' for apt utilities (tree...)
+  'a' for apt
   'A' Arduino
   'b' build tools
   'c' cmake
@@ -14,6 +14,7 @@ echo "Installing system software.  Press:
   'L' Claude
   'n' node.js v24 (to change node version, edit NODE_VERSION)
   's' ssh key
+  'S' sbox deps (apparmor)
   'u' for user/udev setup (groups)
   'v' for Visual Studio Code
 "
@@ -76,10 +77,13 @@ if [ "$confirm" == "a" ]; then
     # bubblewrap: for sandboxing
     # mpv: a performant movie player with wayland compatability
     # tinyproxy: an http proxy, used in sbox
-    
-    if [[ ! -f /etc/apparmor.d/bwrap ]]; then
-        echo "[software.sh] Creating appArmor profiles..."
-        sudo install -D -o root -g root -m 644 -t /etc/apparmor.d apparmor.d/*
+fi
+
+# -- Sbox dependency (tinyproxy apparmor tweak) --
+if [ "$confirm" == "S" ]; then
+    if [[ ! -f /etc/apparmor.d/local/tinyproxy ]]; then
+        echo "[software.sh] Loosening tinyproxy apparmor permissions..."
+        sudo install -o root -g root -m 644 -t /etc/apparmor.d/local apparmor.d/local/*
         echo "[software.sh] Reloading apparmor service..."
         sudo systemctl reload apparmor
     fi
@@ -292,6 +296,8 @@ if [ "$confirm" == "L" ]; then
         sudo apt update
         sudo apt install claude-code
     fi
+    [ -d "$HOME/.claude" ] || mkdir "$HOME/.claude"
+    [ -f "$HOME/.claude.json" ] || touch $HOME/.claude.json
 fi
 
 # --  --
