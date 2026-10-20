@@ -165,6 +165,8 @@ if [ "$confirm" == "a" ] || [ "$confirm" == "v" ]; then
     sudo apt install apt-transport-https
     sudo apt update
     sudo apt install code
+
+    cp $SCRIPT_DIR/settings/vscode-settings.json $HOME/.config/Code/User/settings.json
     
     xargs -n 1 code --install-extension < vscode-extensions.txt
 fi
