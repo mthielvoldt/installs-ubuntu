@@ -2,6 +2,7 @@
 set -e
 
 echo "Installing system software.  Press:
+  'a' for apt utilities (tree...)
   'A' Arduino
   'b' build tools
   'c' cmake
@@ -13,8 +14,7 @@ echo "Installing system software.  Press:
   'L' Claude
   'n' node.js v24 (to change node version, edit NODE_VERSION)
   's' ssh key
-  'u' for apt utilities (tree...)
-  'U' for user setup (groups)
+  'u' for user/udev setup (groups)
   'v' for Visual Studio Code
 "
 # Read single character (-n 1) silently (-s), without Enter (-r), 
@@ -37,13 +37,52 @@ export DPKG_ARCH=$(dpkg --print-architecture)
 export VERSION_CODENAME
 export NODE_VERSION=24
 
-# -- User setup --
-if [ "$confirm" == "U" ]; then
+# -- User/udev setup --
+if [ "$confirm" == "u" ]; then
     if [[ $USER == "root" ]]; then
         echo "Script run as root.  Restart as your normal user."
         exit -1
     fi
-    sudo usermod -a -G dialout,tinyproxy $USER
+
+    if [[ $(groups) != *"dialout"* ]]; then
+        sudo usermod -a -G dialout $USER
+        user_modified="y"
+    fi
+
+    if [[ $(groups) != *"tinyproxy"* ]]; then
+        sudo usermod -a -G tinyproxy $USER
+        user_modified="y"
+    fi
+    
+    if [ -d "$HOME/STMicroelectronics/STM32Cube/STM32CubeProgrammer" ]; then
+        echo -e "[software.sh] Installing STM32 rules to /etc/udev/rules.d..."
+        sudo install -o root -g root -m 644 -t /etc/udev/rules.d \
+            $HOME/STMicroelectronics/STM32Cube/STM32CubeProgrammer/Drivers/rules/*.rules
+    fi
+
+    if [[ $user_modified == "y" ]]; then
+        echo "User added to groups, re-login required.";
+    fi
+fi
+
+# -- Generic utilities from apt --
+if [ "$confirm" == "a" ]; then
+    echo -e "\n[software.sh] Installing apt utilities..."
+    sudo apt update
+    sudo apt install tree python3-venv mpv curl libcap-dev ripgrep tinyproxy rclone
+    # ripgrep: faster recursive grep, doesn't search .gitignore'd files. 
+    # libcap-dev: bubblewrap compile dependency
+    # slirp4netns: for making host networks available to a sandbox
+    # bubblewrap: for sandboxing
+    # mpv: a performant movie player with wayland compatability
+    # tinyproxy: an http proxy, used in sbox
+    
+    if [[ ! -f /etc/apparmor.d/bwrap ]]; then
+        echo "[software.sh] Creating appArmor profiles..."
+        sudo install -D -o root -g root -m 644 -t /etc/apparmor.d apparmor.d/*
+        echo "[software.sh] Reloading apparmor service..."
+        sudo systemctl reload apparmor
+    fi
 fi
 
 # Arduino
@@ -97,26 +136,6 @@ if [ "$confirm" == "d" ]; then
         systemctl --user enable dropbox.service
         systemctl --user start dropbox.service
     fi    
-fi
-
-# -- Generic utilities from apt --
-if [ "$confirm" == "u" ]; then
-    echo -e "\n[software.sh] Installing apt utilities..."
-    sudo apt update
-    sudo apt install tree python3-venv mpv curl libcap-dev ripgrep tinyproxy rclone
-    # ripgrep: faster recursive grep, doesn't search .gitignore'd files. 
-    # libcap-dev: bubblewrap compile dependency
-    # slirp4netns: for making host networks available to a sandbox
-    # bubblewrap: for sandboxing
-    # mpv: a performant movie player with wayland compatability
-    # tinyproxy: an http proxy, used in sbox
-    
-    if [[ ! -f /etc/apparmor.d/bwrap ]]; then
-        echo "[software.sh] Creating appArmor profiles..."
-        sudo install -D -o root -g root -m 644 -t /etc/apparmor.d apparmor.d/*
-        echo "[software.sh] Reloading apparmor service..."
-        sudo systemctl reload apparmor
-    fi
 fi
 
 # -- Git from ppa (because github hosted runner ubuntu-latest has the latest git, apt does not.)
