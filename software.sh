@@ -13,6 +13,7 @@ echo "Installing system software.  Press:
   'h' home mods
   'L' Claude
   'n' node.js v24 (to change node version, edit NODE_VERSION)
+  'p' pass and dependencies (gpg)
   's' ssh key
   'S' sbox deps (apparmor)
   'u' for user/udev setup (groups)
@@ -77,6 +78,15 @@ if [ "$confirm" == "a" ]; then
     # bubblewrap: for sandboxing
     # mpv: a performant movie player with wayland compatability
     # tinyproxy: an http proxy, used in sbox
+fi
+
+if [ "$confirm" == "p" ]; then
+    echo -e "\n[software.sh] Installing pass and deps..."
+    sudo apt update
+    sudo apt install pass wl-clipboard
+    gpg --full-generate-key
+    GPG_KEY_ID=$(gpg --with-colons --list-secret-keys 2>/dev/null | awk -F: '$1=="sec"{get_next=1} $1=="fpr" && get_next{print $10; exit}')
+    pass init "$GPG_KEY_ID"
 fi
 
 # -- Sbox dependency (tinyproxy apparmor tweak) --
